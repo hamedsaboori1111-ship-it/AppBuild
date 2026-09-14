@@ -1,4 +1,4 @@
-name: Advanced Android APK Builder
+name: Advanced Android APK Builder with Log Capture
 
 on:
   push:
@@ -40,20 +40,31 @@ jobs:
     - name: Setup Gradle
       uses: gradle/actions/setup-gradle@v3
 
-    - name: Build APK with Advanced SDK & Stacktrace
+    - name: Build APK & Save Log
       env:
         GRADLE_OPTS: "-Dorg.gradle.jvmargs=-Xmx4096m -Dfile.encoding=UTF-8"
       run: |
         cd ${{ env.PROJECT_DIR }}
         if [ -f "./gradlew" ]; then
           chmod +x gradlew
-          ./gradlew assembleDebug --stacktrace --warning-mode all
+          ./gradlew assembleDebug --stacktrace > build_error_log.txt 2>&1 || true
         else
-          gradle assembleDebug --stacktrace --warning-mode all
+          gradle assembleDebug --stacktrace > build_error_log.txt 2>&1 || true
         fi
+        cat build_error_log.txt | grep -A 10 "What went wrong" || true
 
-    - name: Upload APK
+    - name: Upload Error Log if Failed
       uses: actions/upload-artifact@v4
       with:
-        name: app-debug
-        path: '**/build/outputs/apk/debug/*.apk'
+        name: build-error-log
+        path: '**/build_error_log.txt'
+
+    - name: Finalize Build Status
+      run: |
+        cd ${{ env.PROJECT_DIR }}
+        if [ -f "./gradlew" ]; then
+          ./gradlew assembleDebug
+        else
+          gradle assembleDebug
+        fi
+        
