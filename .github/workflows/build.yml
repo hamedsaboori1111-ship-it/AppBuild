@@ -29,13 +29,9 @@ jobs:
         java-version: '21'
         distribution: 'temurin'
 
-    - name: Setup Android SDK
-      uses: android-actions/setup-android@v3
-
-    - name: Accept Android SDK Licenses & Install Build Tools
+    - name: Accept Android SDK Licenses
       run: |
         yes | $ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager --licenses || true
-        $ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager "platform-tools" "platforms;android-34" "build-tools;34.0.0" || true
 
     - name: Setup Gradle
       uses: gradle/actions/setup-gradle@v3
@@ -51,7 +47,6 @@ jobs:
         else
           gradle assembleDebug --stacktrace > build_error_log.txt 2>&1 || true
         fi
-        cat build_error_log.txt | grep -A 10 "What went wrong" || true
 
     - name: Upload Error Log if Failed
       uses: actions/upload-artifact@v4
@@ -67,4 +62,10 @@ jobs:
         else
           gradle assembleDebug
         fi
+
+    - name: Upload APK
+      uses: actions/upload-artifact@v4
+      with:
+        name: app-debug
+        path: '**/build/outputs/apk/debug/*.apk'
         
