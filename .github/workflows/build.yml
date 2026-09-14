@@ -19,7 +19,6 @@ jobs:
         echo "Extracting $ZIP_FILE..."
         unzip -o "$ZIP_FILE" -d extracted_project
         
-        # پیدا کردن مسیر اصلی پروژه که پوشه app یا build.gradle دارد
         PROJECT_DIR=$(find extracted_project -name "build.gradle*" -o -name "settings.gradle*" | head -n 1 | xargs dirname)
         echo "Project Root: $PROJECT_DIR"
         echo "PROJECT_DIR=$PROJECT_DIR" >> $GITHUB_ENV
@@ -36,7 +35,7 @@ jobs:
     - name: Build APK
       run: |
         cd ${{ env.PROJECT_DIR }}
-        if [ -f "./gradlew" ]; me
+        if [ -f "./gradlew" ]; then
           chmod +x gradlew
           ./gradlew assembleDebug
         else
